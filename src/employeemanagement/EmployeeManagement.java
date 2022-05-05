@@ -1,6 +1,5 @@
 package employeemanagement;
 
-import helper.Database;
 import views.MainFrame;
 
 public class EmployeeManagement {

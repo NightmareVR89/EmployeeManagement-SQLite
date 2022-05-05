@@ -3,6 +3,7 @@ package views.mainwindow;
 import employeemanagement.Employee;
 import helper.Database;
 import helper.Encryption;
+import views.MainFrame;
 
 import java.awt.Dimension;
 import java.nio.file.Files;
@@ -27,14 +28,16 @@ public class MainWindow extends JPanel {
 
     private ArrayList<Employee> listEmployees = new ArrayList<Employee>();
     private DefaultListModel<String> listModel = new DefaultListModel<String>();
-    private final String filepath = "employees.db";
     private Employee loggedIn = null;
     private NumberFormat ageFormat;
     private final Pattern testForNumber = Pattern.compile("^[^A-Z]|.[^a-z]");
 
+    private MainFrame parent;
+
     private Database connection;
-    public MainWindow() {
-        if(!Files.exists(Path.of(filepath))) {
+    public MainWindow(MainFrame parent) {
+        this.parent = parent;
+        if(!Files.exists(Path.of("employees.db"))) {
             JOptionPane.showMessageDialog(null, "Erster Start entdeckt: Defaultbenutzer admin@admin.de mit Passwort admin angelegt.");
             this.connection = new Database(true);
         } else {
@@ -80,14 +83,14 @@ public class MainWindow extends JPanel {
         this.btnAdd.addActionListener(e -> addEmployee());
         this.btnDel.addActionListener(e -> deleteEmployee());
         this.btnLogin.addActionListener(e -> checkLogin(txtMail.getText(), String.valueOf(txtPw.getPassword())));
-        this.btnLogout.addActionListener(e -> { this.loggedIn = null; resetForm(); });
+        this.btnLogout.addActionListener(e -> { this.loggedIn = null; resetForm(); parent.changeTitle("Mitarbeiterverwaltung - Login"); });
         this.eList.addListSelectionListener(e -> fillFields());
 
         resetForm();
     }
 
     /**
-     * Creates new Employee Object, adds it to the Employeelist and writes the new List as JSON to File
+     * Adds new Employee to SQLite DB
      */
     private void addEmployee() {
         if(this.loggedIn == null || !checkFields()) return;
@@ -95,13 +98,13 @@ public class MainWindow extends JPanel {
         Employee newEmployee = this.connection.createUser(txtName.getText(), (Integer) txtAge.getValue(), txtMail.getText(), encrypted);
 
         this.listEmployees.add(newEmployee);
-        this.listModel.addElement(newEmployee.getName() + " (" + Integer.toString(newEmployee.getAge()) + ")");
+        this.listModel.addElement(newEmployee.getName() + " (" + newEmployee.getAge() + ")");
 
         resetForm();
     }
 
     /**
-     * Removes in List selected Employee from Employeelist and writes the new List as JSON to File
+     * Removes in List selected Employee from Employeelist and removes it from the SQLite DB
      */
     private void deleteEmployee() {
         if(eList.getSelectedIndex() > -1 && this.loggedIn != null) {
@@ -132,6 +135,7 @@ public class MainWindow extends JPanel {
                 if(Encryption.comparePassword(password, e.getPassword())) {
                     JOptionPane.showMessageDialog(null, "Login Erfolgreich");
                     this.loggedIn = e;
+                    parent.changeTitle("Mitarbeiterverwaltung - Logged in as: "+e.getName());
                     resetForm();
                 } else {
                     JOptionPane.showMessageDialog(null, "Passwort falsch!", "Login Error", JOptionPane.ERROR_MESSAGE);
@@ -213,7 +217,7 @@ public class MainWindow extends JPanel {
             return false;
         }
         if(this.connection.getEmployeeByMail(txtMail.getText()) != null)  {
-                JOptionPane.showMessageDialog(null, "Name existiert schon!", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, "Email existiert schon!", "Error", JOptionPane.ERROR_MESSAGE);
                 return false;
         }
         return true;
