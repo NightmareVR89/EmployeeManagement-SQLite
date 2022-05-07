@@ -36,7 +36,6 @@ public class Database {
      */
     private void firstStart() {
         try {
-            System.out.println("Versuche zu erstellen");
             this.statement = this.connection.createStatement();
 
             String query = "CREATE TABLE IF NOT EXISTS employees "+
@@ -50,7 +49,6 @@ public class Database {
             this.statement.close();
             String pw = Encryption.bcryptHash("admin");
             Employee defaultEmployee = createUser("Admin", 99, "admin@admin.de", pw);
-            System.out.println("Defaultlogin: admin@admin.de\n Defaultpassword: admin");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -183,7 +181,6 @@ public class Database {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println(employeeList);
         return employeeList;
     }
 

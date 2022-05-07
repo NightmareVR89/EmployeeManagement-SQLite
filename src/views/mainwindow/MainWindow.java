@@ -129,17 +129,14 @@ public class MainWindow extends JPanel {
      */
     private void checkLogin(String email, String password) {
         boolean found = false;
-        for(Employee e: listEmployees) {
-            if(e.getEmail().equals(email) && !e.getPassword().isEmpty()) {
+        Employee login = this.connection.getEmployeeByMail(email);
+        if(login != null) {
+            if(Encryption.comparePassword(password, login.getPassword())) {
                 found = true;
-                if(Encryption.comparePassword(password, e.getPassword())) {
-                    JOptionPane.showMessageDialog(null, "Login Erfolgreich");
-                    this.loggedIn = e;
-                    parent.changeTitle("Mitarbeiterverwaltung - Logged in as: "+e.getName());
-                    resetForm();
-                } else {
-                    JOptionPane.showMessageDialog(null, "Passwort falsch!", "Login Error", JOptionPane.ERROR_MESSAGE);
-                }
+                JOptionPane.showMessageDialog(null, "Login Erfolgreich");
+                this.loggedIn = login;
+                parent.changeTitle("Mitarbeiterverwaltung - Logged in as: "+login.getName());
+                resetForm();
             }
         }
         if(!found) {
